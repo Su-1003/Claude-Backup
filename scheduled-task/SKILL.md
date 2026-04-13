@@ -10,6 +10,7 @@ You are running the Session Backup Workflow. Your job is to create a comprehensi
 Create/update the backup vault at: `~/Documents/ClaudeVault/`
 
 The vault structure should be:
+
 ```
 ClaudeVault/
 ├── _index.md                    (master index of all projects and latest activity)
@@ -38,37 +39,61 @@ ClaudeVault/
 
 ## STEP-BY-STEP INSTRUCTIONS
 
-### Step 1: Discover paths
+### Step 1: Discover paths and build project path map
 
 Determine the user's home directory. Use `~` expansion or `$HOME` in bash. All paths below are relative to the home directory:
+
 - Claude Code data: `~/.claude/`
 - Vault output: `~/Documents/ClaudeVault/`
 
 If running in Cowork, request directory access:
+
 - Request access to `~/.claude` using request_cowork_directory with path "~/.claude"
 - Request access to `~/Documents` using request_cowork_directory with path "~/Documents"
 
 Then discover the VM mount prefix by running `ls /sessions/*/mnt/` in bash. Use that prefix for all bash commands (e.g., `/sessions/<session-name>/mnt/.claude/`). Use the host paths (as reported by request_cowork_directory) for Read/Write/Edit/Glob/Grep tools.
 
-### Step 2: Create vault directory structure
-Use bash to create the full directory tree under the vault path. Create all subdirectories: `_global`, `projects`, `cowork`, `shell-snapshots`.
+**Build a path-decoding map before processing any project directories.** The directories under `~/.claude/projects/` encode the original path by replacing each `/` with `-` (with a leading `-` for the root `/`). This is ambiguous for paths that contain dashes in their names. Resolve it using `history.jsonl` as ground truth:
+
+1. Parse `~/.claude/history.jsonl` — each line is JSON with a `"project"` field containing the absolute path
+2. Collect all unique values of `"project"` (e.g., `/Users/alice/WebKitchen/my-app`)
+3. For each known path, compute its encoded form: replace every `/` with `-`, then strip the leading `-`
+   - Example: `/Users/alice/WebKitchen/my-app` → `Users-alice-WebKitchen-my-app`
+4. Build a lookup map: `{ encoded_dir_name → original_absolute_path }`
+5. When iterating `~/.claude/projects/` directories in Step 8, look up each directory name in this map to get the original path
+6. For any directory with no match (no history entries yet), fall back to: split on `-` and find a prefix sequence where `test -d "$candidate"` succeeds in bash
+
+### Step 2: Mark backup as in-progress, create vault structure
+
+**Before writing any files**, append a progress marker to `_backup-log.md` (create it if it doesn't exist):
+
+```
+## Backup Started: [human-readable timestamp]
+Status: IN PROGRESS
+```
+
+This allows detection of failed or stuck backups. Step 10 will replace this with the final SUCCESS/PARTIAL entry.
+
+Then use bash to create the full directory tree under the vault path. Create all subdirectories: `_global`, `projects`, `cowork`, `shell-snapshots`.
 
 ### Step 3: Back up global config
+
 - Copy `~/.claude/CLAUDE.md` to `ClaudeVault/_global/CLAUDE.md`
 - Read `~/.claude/settings.json` and write a human-readable markdown version to `_global/settings-snapshot.md` — include all hooks, their matchers, commands, and timeouts in a readable format
 - Document hooks config separately in `_global/hooks-config.md` with explanation of what each hook does
 - Read `~/.claude/plugins/installed_plugins.json` and `~/.claude/plugins/known_marketplaces.json` and write `_global/plugins.md` documenting: plugin names, versions, install dates, marketplace sources
 
 ### Step 4: Process Claude Code history and plans (PROJECT-WISE)
+
 - Read `~/.claude/history.jsonl` — each line is JSON: `{"display": "prompt text", "project": "/absolute/path", "sessionId": "uuid", "timestamp": epoch_ms}`
 - Group all entries by `project` path
 - For each project:
   - Extract a clean project name from the path (last 1-2 directory components)
   - Create `projects/<project-name>/history.md` with ALL prompts listed chronologically with human-readable timestamps and session IDs
   - Read ALL plan files from `~/.claude/plans/*.md`. For each plan, read its full content and determine which project it belongs to by looking for: project paths, project names, technology mentions, or contextual clues.
-  - **IMPORTANT — Rename plan files meaningfully:** The original plan filenames are random words (e.g., `binary-singing-lake.md`, `gleaming-splashing-feather.md`). When copying plans to the vault, rename them using a slugified version of the plan's `# Title` heading. For example:
-    - `gleaming-splashing-feather.md` with title "Circle-Up Verification Platform — Development Plan" → `circle-up-verification-platform-development-plan.md`
-    - `whimsical-soaring-dewdrop.md` with title "Tournament UI Beautification Plan" → `tournament-ui-beautification-plan.md`
+  - **IMPORTANT — Rename plan files meaningfully:** The original plan filenames are random words (e.g., `binary-singing-lake.md`, `whimsical-soaring-dewdrop.md`). When copying plans to the vault, rename them using a slugified version of the plan's `# Title` heading. For example:
+    - `binary-singing-lake.md` with title "User Authentication Implementation Plan" → `user-authentication-implementation-plan.md`
+    - `whimsical-soaring-dewdrop.md` with title "Dashboard UI Redesign" → `dashboard-ui-redesign.md`
     - Rules: lowercase, spaces/special chars to hyphens, strip "Plan:" prefixes, max 60 chars, deduplicate with `-2` suffix if needed
   - Save renamed plans into `projects/<project-name>/plans/`
   - **Create a plans index** at `projects/<project-name>/plans/_index.md` containing a table for every plan in that project:
@@ -78,8 +103,8 @@ Use bash to create the full directory tree under the vault path. Create all subd
 
     | # | Plan | Topic | Summary |
     |---|------|-------|---------|
-    | 1 | [Circle-Up Development Plan](circle-up-verification-platform-development-plan.md) | Platform architecture | 4-panel synchronized React app for DRHP verification... |
-    | 2 | [Playground Page Implementation](playground-page-implementation.md) | Feature build | DevTools drawer with section extraction controls... |
+    | 1 | [Initial Architecture](initial-architecture.md) | Architecture | Core data model, API design, and project structure... |
+    | 2 | [Feature Implementation](feature-implementation.md) | Feature build | Step-by-step plan for the main user-facing flow... |
     ```
 
     For each plan entry:
@@ -94,17 +119,20 @@ Use bash to create the full directory tree under the vault path. Create all subd
     - **Quick Resume section**: what was last worked on (from most recent history entries), key architectural decisions (from plans), current bugs/issues being addressed, specific file paths mentioned, and suggested next steps
 
 ### Step 5: Back up Claude Code session metadata
+
 - Read all files in `~/.claude/sessions/*.json` — each contains: `pid`, `sessionId`, `cwd` (project path), `startedAt` (epoch ms), `kind`, `entrypoint`
 - Map each session to its project via the `cwd` field
 - Write session info into `projects/<project-name>/sessions/sessions.md` as a chronological list with human-readable timestamps, session IDs, and entrypoint (interactive vs desktop)
 
 ### Step 6: Back up file edit history
+
 - Check `~/.claude/file-history/` — organized by sessionId, each file is a versioned snapshot of files edited
 - For each session directory, determine the project from session metadata
 - Copy file history into `projects/<project-name>/file-history/` preserving the version structure
 - In the project summary, add a "Files Modified" section listing all files touched
 
 ### Step 7: Back up shell snapshots
+
 - Copy all files from `~/.claude/shell-snapshots/` to `ClaudeVault/shell-snapshots/`
 - These are zsh environment snapshots useful for reconstructing the terminal setup
 
@@ -113,6 +141,7 @@ Use bash to create the full directory tree under the vault path. Create all subd
 The primary transcript store is `~/.claude/projects/`. This directory contains EVERY conversation — Claude Code sessions, Cowork sessions, and Desktop chat sessions — as JSONL files organized by project path.
 
 **Structure of `~/.claude/projects/`:**
+
 ```
 ~/.claude/projects/
 ├── -Users-<username>-<project-path>/     (project dir, path encoded with dashes)
@@ -129,12 +158,14 @@ The primary transcript store is `~/.claude/projects/`. This directory contains E
 ```
 
 **How to process:**
+
 1. Use the Glob tool to list all directories under `~/.claude/projects/` — each directory name is an encoded project path
-2. Decode the directory name to recover the original project path: replace leading dashes with `/`, so `-Users-<user>-WebKitchen-MyApp` becomes `/Users/<user>/WebKitchen/MyApp`
+2. Decode each directory name using the path-decoding map built in Step 1. For unmatched directories, use the fallback (split on `-`, test combinations with `test -d`)
 3. Directories containing `local-agent-mode-sessions` in their name are **Cowork sessions** — save these under `cowork/` in the vault
 4. All other directories are **Claude Code / Desktop sessions** — save these under the matching `projects/<name>/` in the vault
 
 **For each project directory:**
+
 - Find all `*.jsonl` files at the root level (these are main conversation transcripts)
 - Each JSONL file is one session. Each line is a JSON object representing a message. Extract the human-readable conversation by filtering for user and assistant messages.
 - Convert each JSONL transcript into a readable markdown file:
@@ -146,15 +177,19 @@ The primary transcript store is `~/.claude/projects/`. This directory contains E
 - Also check for `subagents/` directories and note their existence in the session metadata
 
 **For Cowork sessions specifically:**
+
 - Also use `list_sessions` (limit 50) to get any currently active sessions and their transcripts via `read_transcript` — this captures sessions that may not yet be flushed to disk
 - Check if the Cowork session's working directory is accessible and copy any output files to `cowork/<session-id>/files/`
 
 **Update indexes:**
+
 - Add a transcript count to each project's `_project-summary.md`
 - Update `cowork/_cowork-index.md` with all discovered Cowork sessions, their dates, and topic summaries
 
 ### Step 9: Build the master index
+
 Create/update `_index.md` with:
+
 - Backup timestamp (human-readable)
 - **Projects section**: table of all projects with: name, path, latest activity date, number of plans, session count, one-line status
 - **Quick Resume per project**: 2-3 sentence summary of where things stand plus the last prompt sent
@@ -163,7 +198,9 @@ Create/update `_index.md` with:
 - Relative links to all project summaries and cowork transcripts
 
 ### Step 10: Update backup log
+
 Append to `_backup-log.md`:
+
 ```
 ## Backup: [human-readable timestamp]
 - Projects backed up: [count]
@@ -176,18 +213,35 @@ Append to `_backup-log.md`:
 ```
 
 ### Step 11: Handle unmatched plans
+
 - Any plan files that don't clearly belong to a known project go in `projects/_unmatched/plans/`
 - List them in the master index under "Unmatched Plans"
 
 ## IMPORTANT NOTES
 
-- This runs every 6 hours automatically. Be INCREMENTAL — check file modification times before rewriting unchanged files. Use bash `stat` or `find -newer` to compare.
+### Incremental backup — skip unchanged files
+
+This runs every 6 hours. To avoid rewriting unchanged content:
+
+1. At backup start, read `ClaudeVault/.timestamps.json` if it exists. Format: `{"<source_absolute_path>": <mtime_epoch_seconds>}`
+2. For each source file before processing:
+   - Get its current mtime: `stat -f %m <file>` (macOS) or `stat -c %Y <file>` (Linux/Windows WSL)
+   - If the mtime matches the stored value AND the vault output file already exists → skip this file
+   - Otherwise process and write as normal
+3. At Step 10 (after SUCCESS), write updated mtimes for all processed files back to `.timestamps.json`
+
+Do not skip per-project summary files (`_project-summary.md`, `_index.md`) even if source files are unchanged — these should be regenerated each run to stay current.
+
+### Other rules
+
 - NEVER delete or overwrite with less data. Only add or update.
 - Use human-readable timestamps everywhere (e.g., "Apr 13, 2026 at 2:30 PM")
 - The vault must be entirely self-contained — someone opening it fresh should understand the full state of everything
-- If a step fails, log the failure in _backup-log.md and continue with remaining steps
+- If a step fails, log the failure in `_backup-log.md` and continue with remaining steps
 - For the Quick Resume sections, be VERY detailed: include file paths, current bugs, architectural decisions, the exact last prompt sent, and what the likely next step would be
 - When reading plan files to classify them, read the FULL content, not just the first few lines — project context may be deep in the file
+- Detect OS for stat command: check `uname -s` — `Darwin` uses `stat -f %m`, `Linux` uses `stat -c %Y`
 
 ## SUCCESS CRITERIA
+
 The vault at ~/Documents/ClaudeVault/ should contain everything needed to resume ANY project from scratch on a new account. A new session reading `_index.md` should be able to understand all active work and continue seamlessly.

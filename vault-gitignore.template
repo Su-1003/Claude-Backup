@@ -1,0 +1,22 @@
+# Claude Vault — .gitignore
+#
+# This file is auto-installed by Claude-Backup to protect sensitive content
+# if you choose to sync your vault to a git repo or cloud service.
+#
+# Safe to commit:  _index.md, plans/, history.md, _project-summary.md
+# Sensitive:       transcripts (may contain API keys, passwords, tokens)
+#                  file-history (may contain proprietary source code)
+
+# Conversation transcripts — may contain credentials or sensitive data
+projects/*/transcripts/
+cowork/*/transcript.md
+cowork/*/files/
+
+# File edit history — may contain proprietary source code
+projects/*/file-history/
+
+# Shell environment snapshots — may contain exported env vars with secrets
+shell-snapshots/
+
+# Incremental backup state
+.timestamps.json
