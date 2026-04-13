@@ -1,4 +1,4 @@
-# vault-resume
+# Claude-Backup
 
 Never lose your Claude context again. Back up every session, plan, and conversation automatically — resume any project from any account in seconds.
 
@@ -17,8 +17,8 @@ Claude accounts log you out. Sessions expire. Context disappears. You're left sc
 ## Install (10 seconds)
 
 ```bash
-git clone https://github.com/abhinavdas/vault-resume.git
-cd vault-resume
+git clone https://github.com/abhinav-adtechs/Claude-Backup.git
+cd Claude-Backup
 chmod +x install.sh
 ./install.sh
 ```
