@@ -5,16 +5,21 @@ CLAUDE_DIR="$HOME/.claude"
 SKILL_DIR="$CLAUDE_DIR/vault-resume"
 SCHEDULED_DIR="$HOME/Documents/Claude/Scheduled/session-backup"
 
-echo "Installing vault-resume..."
+# Allow custom vault location: ./install.sh /path/to/my/vault
+VAULT_DIR="${1:-$HOME/Documents/ClaudeVault}"
 
-# Install the skill
+echo "Installing Claude-Backup..."
+echo "  Vault location: $VAULT_DIR"
+echo ""
+
+# Install the skill (with vault path substituted)
 mkdir -p "$SKILL_DIR"
-cp skill/SKILL.md "$SKILL_DIR/SKILL.md"
+sed "s|~/Documents/ClaudeVault/|$VAULT_DIR/|g" skill/SKILL.md > "$SKILL_DIR/SKILL.md"
 echo "  Skill installed to $SKILL_DIR"
 
-# Install the scheduled task
+# Install the scheduled task (with vault path substituted)
 mkdir -p "$SCHEDULED_DIR"
-cp scheduled-task/SKILL.md "$SCHEDULED_DIR/SKILL.md"
+sed "s|~/Documents/ClaudeVault/|$VAULT_DIR/|g" scheduled-task/SKILL.md > "$SCHEDULED_DIR/SKILL.md"
 echo "  Scheduled task installed to $SCHEDULED_DIR"
 
 echo ""

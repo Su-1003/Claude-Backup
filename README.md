@@ -23,6 +23,13 @@ chmod +x install.sh
 ./install.sh
 ```
 
+Or specify a custom vault location:
+
+```bash
+./install.sh ~/Dropbox/ClaudeVault    # back up to Dropbox
+./install.sh /Volumes/USB/ClaudeVault  # back up to external drive
+```
+
 Then open Cowork, go to **Scheduled** in the sidebar, and hit **Run now** on `session-backup`.
 
 That's it. Your first backup will populate the vault. Future backups run every 6 hours automatically.
@@ -98,7 +105,13 @@ Edit the cron expression in the scheduled task. Default is `0 */6 * * *` (every 
 
 ### Change vault location
 
-Edit the vault path in both `scheduled-task/SKILL.md` and `skill/SKILL.md`, then reinstall.
+Reinstall with a custom path:
+
+```bash
+./install.sh /path/to/your/vault
+```
+
+This updates both the scheduled task and the resume skill automatically. Works great with Dropbox, iCloud Drive, or an external drive for extra redundancy.
 
 ## How It Works
 
