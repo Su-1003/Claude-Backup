@@ -65,7 +65,28 @@ Use bash to create the full directory tree under the vault path. Create all subd
 - For each project:
   - Extract a clean project name from the path (last 1-2 directory components)
   - Create `projects/<project-name>/history.md` with ALL prompts listed chronologically with human-readable timestamps and session IDs
-  - Read ALL plan files from `~/.claude/plans/*.md`. For each plan, read its full content and determine which project it belongs to by looking for: project paths, project names, technology mentions, or contextual clues. Copy matching plans into `projects/<project-name>/plans/<original-filename>.md`
+  - Read ALL plan files from `~/.claude/plans/*.md`. For each plan, read its full content and determine which project it belongs to by looking for: project paths, project names, technology mentions, or contextual clues.
+  - **IMPORTANT — Rename plan files meaningfully:** The original plan filenames are random words (e.g., `binary-singing-lake.md`, `gleaming-splashing-feather.md`). When copying plans to the vault, rename them using a slugified version of the plan's `# Title` heading. For example:
+    - `gleaming-splashing-feather.md` with title "Circle-Up Verification Platform — Development Plan" → `circle-up-verification-platform-development-plan.md`
+    - `whimsical-soaring-dewdrop.md` with title "Tournament UI Beautification Plan" → `tournament-ui-beautification-plan.md`
+    - Rules: lowercase, spaces/special chars to hyphens, strip "Plan:" prefixes, max 60 chars, deduplicate with `-2` suffix if needed
+  - Save renamed plans into `projects/<project-name>/plans/`
+  - **Create a plans index** at `projects/<project-name>/plans/_index.md` containing a table for every plan in that project:
+
+    ```
+    # Plans — <Project Name>
+
+    | # | Plan | Topic | Summary |
+    |---|------|-------|---------|
+    | 1 | [Circle-Up Development Plan](circle-up-verification-platform-development-plan.md) | Platform architecture | 4-panel synchronized React app for DRHP verification... |
+    | 2 | [Playground Page Implementation](playground-page-implementation.md) | Feature build | DevTools drawer with section extraction controls... |
+    ```
+
+    For each plan entry:
+    - **Plan**: the renamed filename as a relative link
+    - **Topic**: 2-3 word category (e.g., "UI redesign", "Security", "Feature build", "Bug fix", "Architecture", "Deployment")
+    - **Summary**: 1-2 sentence description of what the plan covers, derived from reading the plan content. Include key technologies, components, or goals mentioned.
+
   - Create `projects/<project-name>/_project-summary.md` with:
     - Full project path on disk
     - Number of sessions and date range
