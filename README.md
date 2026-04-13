@@ -38,6 +38,7 @@ That's it. Your first backup will populate the vault. Future backups run every 6
 
 | Data | Source | Location in Vault |
 |------|--------|-------------------|
+| Full conversation transcripts | `~/.claude/projects/` | `projects/<name>/transcripts/` |
 | Implementation plans | `~/.claude/plans/` | `projects/<name>/plans/` |
 | Prompt history | `~/.claude/history.jsonl` | `projects/<name>/history.md` |
 | Session metadata | `~/.claude/sessions/` | `projects/<name>/sessions/` |
@@ -45,7 +46,7 @@ That's it. Your first backup will populate the vault. Future backups run every 6
 | Global config | `~/.claude/CLAUDE.md` | `_global/CLAUDE.md` |
 | Settings and hooks | `~/.claude/settings.json` | `_global/settings-snapshot.md` |
 | Installed plugins | `~/.claude/plugins/` | `_global/plugins.md` |
-| Cowork transcripts | Cowork session API | `cowork/<id>/transcript.md` |
+| Cowork transcripts | `~/.claude/projects/` + session API | `cowork/<id>/transcript.md` |
 | Cowork output files | Cowork working dirs | `cowork/<id>/files/` |
 | Shell environment | `~/.claude/shell-snapshots/` | `shell-snapshots/` |
 
@@ -73,6 +74,7 @@ The **vault-resume** skill kicks in, reads your vault, and gives you full contex
 │   ├── my-web-app/
 │   │   ├── _project-summary.md   # Overview + Quick Resume
 │   │   ├── plans/                # Implementation plans
+│   │   ├── transcripts/          # Full conversation transcripts
 │   │   ├── sessions/             # Session metadata
 │   │   ├── history.md            # Every prompt you sent
 │   │   └── file-history/         # Files Claude edited
@@ -118,12 +120,13 @@ This updates both the scheduled task and the resume skill automatically. Works g
 The backup task runs as a Cowork scheduled task. Each run:
 
 1. Reads all Claude Code data from `~/.claude/`
-2. Groups everything by project (using paths from history and session metadata)
-3. Classifies plan files by reading their content and matching to projects
-4. Captures Cowork session transcripts and output files via the session API
-5. Generates per-project summaries with "Quick Resume" sections
-6. Builds a master index linking everything together
-7. Logs the run to `_backup-log.md`
+2. Discovers all projects from `~/.claude/projects/` — this contains every conversation transcript (Code, Cowork, and Desktop) as JSONL files
+3. Groups everything by project and converts JSONL transcripts to readable markdown
+4. Classifies plan files by reading their content and matching to projects
+5. Captures active Cowork session transcripts and output files via the session API
+6. Generates per-project summaries with "Quick Resume" sections
+7. Builds a master index linking everything together
+8. Logs the run to `_backup-log.md`
 
 The resume skill teaches Claude how to navigate the vault structure — which files to read first, how to present context, and how to respect your coding conventions.
 

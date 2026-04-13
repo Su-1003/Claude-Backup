@@ -29,6 +29,7 @@ ClaudeVault/
 │   ├── <project-name>/
 │   │   ├── _project-summary.md  <- Project overview, tech stack, current status, QUICK RESUME
 │   │   ├── plans/               <- Detailed implementation plans (the real gold -- read these)
+│   │   ├── transcripts/         <- Full conversation transcripts (every message, readable markdown)
 │   │   ├── sessions/            <- Session metadata (when, how long, from Code vs Desktop)
 │   │   ├── history.md           <- Every prompt the user sent, chronologically
 │   │   └── file-history/        <- Snapshots of files Claude edited (versioned)
@@ -53,6 +54,7 @@ Always start by reading `_index.md`. It has:
 1. `projects/<name>/_project-summary.md` — overview, tech stack, current status, and the Quick Resume section with last prompts, decisions, and suggested next steps
 2. `projects/<name>/history.md` — the user's actual prompts, most recent at the bottom. This tells you exactly what they were doing and thinking
 3. The most recent plan files in `projects/<name>/plans/` — these contain detailed implementation plans, architecture decisions, and current progress
+4. `projects/<name>/transcripts/` — full conversation transcripts from every session. Read the most recent one(s) to understand the exact flow of the last session including tool calls and decisions made
 
 ### 3. For general "what was I doing?" questions:
 Read `_index.md` and summarize the Quick Resume sections across all active projects.
