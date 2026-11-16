@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-label="Claude-Backup — Back up every Claude session, resume anywhere">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070a12"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="160" cy="40" r="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f2a65a" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#f2a65a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="1180" cy="360" r="560" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e2725b" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#e2725b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f2a65a"/>
+    </linearGradient>
+    <linearGradient id="motif" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2a65a"/>
+      <stop offset="1" stop-color="#e2725b"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.045"/>
+    </pattern>
+    <clipPath id="card"><rect width="1280" height="360" rx="28"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <rect width="1280" height="360" fill="url(#bg)"/>
+    <rect width="1280" height="360" fill="url(#grid)"/>
+    <rect width="1280" height="360" fill="url(#glowA)">
+      <animate attributeName="opacity" values="0.75;1;0.75" dur="7s" repeatCount="indefinite"/>
+    </rect>
+    <rect width="1280" height="360" fill="url(#glowB)"/>
+
+    <!-- MOTIF: a vault door, a backup cycle arrow and a stack of markdown files -->
+    <g id="motif-group" fill="none" stroke="url(#motif)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+      <!-- vault door -->
+      <rect x="868" y="64" width="220" height="220" rx="24"/>
+      <rect x="888" y="84" width="180" height="180" rx="16" stroke-opacity="0.45"/>
+      <path d="M862 110V140M862 208V238" stroke="#f2a65a" stroke-width="6"/>
+      <circle cx="978" cy="174" r="64" stroke-opacity="0.55" stroke-dasharray="2 11"/>
+      <circle cx="978" cy="174" r="52"/>
+      <circle cx="978" cy="174" r="16"/>
+      <path d="M978 190L978 214M964.1 166L943.4 154M991.9 166L1012.6 154" stroke-width="4"/>
+      <!-- backup cycle: every 6 hours -->
+      <path d="M1189.4 105A34 34 0 1 1 1143 92.6" stroke-opacity="0.9"/>
+      <path d="M1137 103L1143 92.6L1131 92.6" stroke-opacity="0.9"/>
+      <path d="M1160 104V122L1172 130" stroke-opacity="0.7"/>
+      <!-- markdown files -->
+      <rect x="1118" y="214" width="64" height="80" rx="8" stroke-opacity="0.35"/>
+      <rect x="1128" y="204" width="64" height="80" rx="8" stroke-opacity="0.6"/>
+      <rect x="1138" y="194" width="64" height="80" rx="8" fill="#0b0f1a" fill-opacity="0.85"/>
+      <path d="M1150 214H1182M1150 228H1190M1150 242H1176M1150 256H1186" stroke="#e2725b" stroke-width="2.5" stroke-opacity="0.85"/>
+    </g>
+  </g>
+
+  <text x="80" y="168" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="80" font-weight="800" letter-spacing="-2" fill="url(#title)">Claude-Backup</text>
+  <text x="84" y="220" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="500" fill="#cbd5e1">Back up every Claude session. Resume from any account.</text>
+
+  <!-- CHIPS: one <g> per chip; width = chars*10.85 + 32; 14px gap between chips -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#e2e8f0">
+    <g transform="translate(84 256)">
+      <rect width="195" height="38" rx="19" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.16"/>
+      <text x="16" y="25">macOS + Windows</text>
+    </g>
+    <g transform="translate(293 256)">
+      <rect width="216" height="38" rx="19" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.16"/>
+      <text x="16" y="25">PowerShell + bash</text>
+    </g>
+    <g transform="translate(523 256)">
+      <rect width="173" height="38" rx="19" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.16"/>
+      <text x="16" y="25">every 6 hours</text>
+    </g>
+  </g>
+
+  <rect x="0.5" y="0.5" width="1279" height="359" rx="28" fill="none" stroke="#ffffff" stroke-opacity="0.1"/>
+</svg>

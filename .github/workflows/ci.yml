@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  install-sh:
+    name: install.sh smoke test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: bash -n install.sh
+
+      - name: Install, check and uninstall in a throwaway home
+        run: |
+          export HOME="$RUNNER_TEMP/home" && mkdir -p "$HOME"
+          VAULT="$RUNNER_TEMP/My Vault"
+
+          bash ./install.sh "$VAULT"
+          bash ./install.sh --check | tee "$RUNNER_TEMP/check.log"
+          grep -q "Resume skill:     installed" "$RUNNER_TEMP/check.log"
+          grep -q "Scheduled backup: installed" "$RUNNER_TEMP/check.log"
+
+          # The custom vault path replaces the default one in both installed skills
+          for f in "$HOME/.claude/vault-resume/SKILL.md" $(find "$HOME" -path '*Scheduled/session-backup/SKILL.md'); do
+            grep -q "$VAULT/" "$f"
+            if grep -q "~/Documents/ClaudeVault/" "$f"; then echo "default vault path left in $f"; exit 1; fi
+          done
+          test -f "$VAULT/.gitignore"
+
+          # Uninstall removes the skills but never the vault
+          bash ./install.sh --uninstall
+          bash ./install.sh --check | tee "$RUNNER_TEMP/check.log"
+          grep -q "Resume skill:     NOT FOUND" "$RUNNER_TEMP/check.log"
+          grep -q "Scheduled backup: NOT FOUND" "$RUNNER_TEMP/check.log"
+          test -f "$VAULT/.gitignore"
